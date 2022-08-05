@@ -2,7 +2,6 @@ from bs4 import BeautifulSoup
 from bs4.element import ResultSet
 import requests 
 import json
-import re
 from datetime import datetime
 import os.path
 import os
