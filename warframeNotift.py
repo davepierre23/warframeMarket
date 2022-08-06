@@ -3,16 +3,27 @@ from bs4.element import ResultSet
 import requests 
 import json
 import logging as log
-
+import boto3
 log.basicConfig(format='%(message)s', level=log.INFO)
 
 PRELINK="https://ps4.warframe.market/items/"
 linkPrime = "https://warframe.fandom.com/wiki/Category:Primed_Mods"
 linkGalvatinized = "https://warframe.fandom.com/wiki/Category:Galvanized_Mods"
 linkArbitrations = "https://warframe.fandom.com/wiki/Arbitrations"
+emailOn=True
 ORDERS="orders"
 PAYLOAD="payload"
+arn ="arn:aws:sns:ca-central-1:004369745227:stockPortfolio"
+ 
 
+def sendEmail(message):
+    sns = boto3.resource('sns')
+    topic_arn= arn
+    topic=sns.Topic(arn=topic_arn)
+    if(emailOn):
+        response = topic.publish(Message=message)
+        message_id = response['MessageId']
+        return message_id
 def constructLink(link,gameName):
     return link+"/"+gameName
 
@@ -142,12 +153,14 @@ def getCurrentSteelPathReward(link="https://warframe.fandom.com/wiki/The_Steel_P
                 log.debug(div.text)
                 return div.text
                
-      
 def main():
-    #getCurrentSteelPathReward()
-    message =checkGalvantizedMods()
-    #checkPrimeMods()
-
+    messages =[]
+    
+    messages.append(getCurrentSteelPathReward())
+    messages.append(checkGalvantizedMods())
+    messages.append(checkPrimeMods())
+    for message in messages:
+        sendEmail(message)
     
 def lambda_handler(event, context):
     main()
