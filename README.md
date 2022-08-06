@@ -11,7 +11,7 @@ source warframeMarket/bin/activate
 
 To update requirements.txt
 pip freeze --local > requirements.txt 
-
+py
 Jobs
 How to package all dependencies needed and deploy 
 cd project_questrade_env/lib/python3.9/site-packages/ 

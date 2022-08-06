@@ -1,4 +1,8 @@
+FILE=deployment.zip
+if test -f "$FILE"; then
+    rm $FILE 
+fi
 cd warframeMarket/lib/python3.9/
-zip -r ../../../../deployment.zip .
+zip -r ../../../$FILE .
 cd ../../..
-zip -g deployment.zip warframeNotift.py
+zip -g $FILE  warframeNotift.py
