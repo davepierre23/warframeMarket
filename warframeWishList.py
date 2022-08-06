@@ -52,7 +52,7 @@ def getListGalvantinzedMods(link=linkGalvatinized):
     
         nameOfMods.append(getReadyLink(mod.text))
 
-    print(nameOfMods)    
+    log.debug(nameOfMods)    
     return nameOfMods
     
 
@@ -62,17 +62,17 @@ def getListArbitrationRewards(link=linkArbitrations):
     r = requests.get(linkGalvatinized,timeout=5) 
     soup = BeautifulSoup(r.text, "html5lib")
 
-    print(soup)
+    log.debug(soup)
     #market orders are find in a script tag 
     artbitrationRewards=soup.findAll("table")
 
-    print(artbitrationRewards)
+    log.debug(artbitrationRewards)
     # nameOfMods = []
     # for mod in artbitrationRewards:
     
     #     nameOfMods.append(getReadyLink(mod.text))
 
-    # print(nameOfMods)    
+    # log.debug(nameOfMods)    
     # return nameOfMods
 
 #take the names and replace it with the link to parse for ps4
@@ -85,16 +85,16 @@ def getReadyLink(name):
 def getItemFromLink(name):
     name = name.lower()
     name =name.split("/")
-    print(name)
+    log.debug(name)
     return name[-1]
 
 
 
 
 def updateGameEntry(gamePrices,gameName,maxPrice,minPrice, link):
-    #print(f'Game: {gamePrices}')
+    #log.debug(f'Game: {gamePrices}')
     if not (gameName in gamePrices):
-        #print(f"Inserting new game data {gameName}")
+        #log.debug(f"Inserting new game data {gameName}")
         newEntry ={}
         newEntry[REGULAR_PRICE]=maxPrice
         newEntry[MIN_PRICE]=minPrice
@@ -123,7 +123,7 @@ def updateGameEntry(gamePrices,gameName,maxPrice,minPrice, link):
         
         #set the max price to be be the regular price
         if(gameData[REGULAR_PRICE]<maxPrice):
-            #print(f"updating new game data old price {gameData[REGULAR_PRICE]} and max {maxPrice}")
+            #log.debug(f"updating new game data old price {gameData[REGULAR_PRICE]} and max {maxPrice}")
             gamePrices[REGULAR_PRICE] =maxPrice
         
         #change the minimum price
@@ -131,12 +131,12 @@ def updateGameEntry(gamePrices,gameName,maxPrice,minPrice, link):
             dateTimeObj = datetime.now()
             timestampStr = dateTimeObj.strftime("%d-%b-%Y (%H:%M:%S.%f)")
             gameData[TIME_MIN_PRICE_UPDATE]=timestampStr
-            #print(f"updating new game data old price {gameData[MIN_PRICE]} and min {minPrice} with time: {timestampStr}")
+            #log.debug(f"updating new game data old price {gameData[MIN_PRICE]} and min {minPrice} with time: {timestampStr}")
             gameData[MIN_PRICE] =minPrice
              
  
 def searchSwitchPrices(link):
-    print("Looking up nintendo switch prices")
+    log.debug("Looking up nintendo switch prices")
     if os.path.isfile(GAME_FILE):
         gamePrices=loadJson()
     else:
@@ -148,7 +148,7 @@ def searchSwitchPrices(link):
         soup = BeautifulSoup(r.text, "html5lib")
         regularPricesTag=soup.findAll("div" ,"row order-row--1GgmF")
         dicountPricesTag=soup.findAll("div", "btn-primary")
-        #print("DiscountPrices")
+        #log.debug("DiscountPrices")
         discountPrices=[]
         prices=[]
         for price in dicountPricesTag:
@@ -161,10 +161,10 @@ def searchSwitchPrices(link):
                     aPrice=float(aPrice)
                     discountPrices.append(aPrice)
                     prices.append(aPrice)
-                    #print(f'The discounted prices :{aPrice}')
+                    #log.debug(f'The discounted prices :{aPrice}')
                 except:
-                    print("An exception occurred")
-        #print("regular price:")
+                    log.debug("An exception occurred")
+        #log.debug("regular price:")
         regularPrices=[]
         for price in regularPricesTag:
             tag= price.string
@@ -175,18 +175,18 @@ def searchSwitchPrices(link):
                     aPrice=float(aPrice)
                     regularPrices.append(aPrice)
                     prices.append(aPrice)
-                   # print(f'The regular prices :{aPrice}')
+                   # log.debug(f'The regular prices :{aPrice}')
                     
                 except:
-                    print('Error as occured')
+                    log.debug('Error as occured')
         prices = sorted(prices)
         numElems = len(prices)
         highestPrice= prices[numElems-1]
         smallestPrice= prices[0]
 
-        #print(f"The smallest price {smallestPrice}")
-        #print(f"The highest price {highestPrice}")
-        #print(f"The prices : {prices}")
+        #log.debug(f"The smallest price {smallestPrice}")
+        #log.debug(f"The highest price {highestPrice}")
+        #log.debug(f"The prices : {prices}")
         updateGameEntry(gamePrices,gameName,highestPrice,smallestPrice, linkToParse)
     
     saveJson(gamePrices)
@@ -195,7 +195,7 @@ def searchSwitchPrices(link):
 
 
 def searchWarFramePrices(link):
-    print("Looking up warframe  Items :" + link)
+    log.debug("Looking up warframe  Items :" + link)
     
     # make request to site
     r = requests.get(link,timeout=5) 
@@ -210,7 +210,7 @@ def searchWarFramePrices(link):
 
 
 
-    print("list of Buy")
+    log.debug("list of Buy")
     sellOrders = getBuyOrders(orders)
 
     sellOrders =parseSellData(link,sellOrders)
@@ -220,9 +220,9 @@ def searchWarFramePrices(link):
 
 
 def parseSellData(item,data):
-    print("Data parsing ")
-    print(item)
-    print(data)
+    log.debug("Data parsing ")
+    log.debug(item)
+    log.debug(data)
     newDataModels = []
     for order in data:
         newData= {}
@@ -235,31 +235,31 @@ def parseSellData(item,data):
     return newDataModels
 
 
-def printSellOrders(sellOrders):
+def log.debugSellOrders(sellOrders):
     i=1
     for item in sellOrders:
-        print('{}: - {}'.format(i, item))
+        log.debug('{}: - {}'.format(i, item))
         i = i +1
-        print()
-    print()
+        log.debug()
+    log.debug()
 
 def checkGalvantizedMods():
 
     queueMods = getListGalvantinzedMods()
     modList = []
     for modLink in queueMods:
-        print("Mod Link checking " +modLink)
+        log.debug("Mod Link checking " +modLink)
         listMod = searchWarFramePrices(modLink)
-        print(listMod)
+        log.debug(listMod)
         modList.extend(listMod)
     
 
     modList.sort(key=lambda x: x["platinum"])
 
-    print("Done listing ")
+    log.debug("Done listing ")
 
-    print("summary number of sell orders "+str(len(modList)))
-    printSellOrders(modList)
+    log.debug("summary number of sell orders "+str(len(modList)))
+    log.debugSellOrders(modList)
     
     
     
@@ -278,7 +278,7 @@ def alert(gamePrices):
     message = ""
     for count, game in enumerate(gamePrices):
         gameData = gamePrices[game]
-        #print(f' {count} the data {gameData}')
+        #log.debug(f' {count} the data {gameData}')
 
         try:
             min_price=gameData[MIN_PRICE]
@@ -290,15 +290,15 @@ def alert(gamePrices):
 
             if(PRICE_DISCOUNT<=discountPrice):
                 if(regPrice>curr_price and curr_price<=min_price):
-                    #print(f"{game} the current price {curr_price} is currently as the cheapest price on {discountPrice}% discount")
+                    #log.debug(f"{game} the current price {curr_price} is currently as the cheapest price on {discountPrice}% discount")
                     message+= f"{game} the current price {curr_price} is currently as the cheapest price on {discountPrice}% discount (reg-price {regPrice}) ({link})\n"
                 elif(regPrice>curr_price):
-                    #print(f"{game} the current price {curr_price} is cheaper then regular price {regPrice} is on {discountPrice}% discount")
+                    #log.debug(f"{game} the current price {curr_price} is cheaper then regular price {regPrice} is on {discountPrice}% discount")
                     message+= f"{game} the current price {curr_price} is cheaper then regular price {regPrice} is on {discountPrice}% discount ({link})\n"
         except TypeError:
-            print(f'Error {gameData}')
+            log.debug(f'Error {gameData}')
 
-    print(message)
+    log.debug(message)
     return message
 
 def sendMessage(messageBody):

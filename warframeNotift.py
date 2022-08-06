@@ -2,8 +2,9 @@ from bs4 import BeautifulSoup
 from bs4.element import ResultSet
 import requests 
 import json
+import logging as log
 
-
+log.basicConfig(format='%(message)s', level=log.INFO)
 
 PRELINK="https://ps4.warframe.market/items/"
 linkPrime = "https://warframe.fandom.com/wiki/Category:Primed_Mods"
@@ -11,7 +12,6 @@ linkGalvatinized = "https://warframe.fandom.com/wiki/Category:Galvanized_Mods"
 linkArbitrations = "https://warframe.fandom.com/wiki/Arbitrations"
 ORDERS="orders"
 PAYLOAD="payload"
-galvanizedMods ="galvanized_acceleration"
 
 def constructLink(link,gameName):
     return link+"/"+gameName
@@ -33,15 +33,13 @@ def getListGalvantinzedMods(link=linkGalvatinized):
     nameOfMods = []
 
     for mod in galvantinzedMods:
-        nameOfMods.append(getReadyLink(mod.text))
-    print(nameOfMods)    
+        nameOfMods.append(getReadyLink(mod.text))    
     return nameOfMods
     
 
 def searchWarFramePrices(link):
     try:
     # make request to site
-        print("Looking up warframe  Items :" + link)
         r = requests.get(link,timeout=5) 
         soup = BeautifulSoup(r.text, "html5lib")
 
@@ -49,33 +47,13 @@ def searchWarFramePrices(link):
         offerTags=soup.find(id="application-state")
         orders = json.loads(offerTags.contents[0])
         orders = (orders[PAYLOAD][ORDERS])
-        print("list of Buy")
         sellOrders = getBuyOrders(orders)
         sellOrders =parseSellData(link,sellOrders)
         return sellOrders
     except BaseException as err:
-        print(f"Unexpected {err=}, {type(err)=}")
+        log.debug("Failed to look up the following" + link)
         return []
 
-
- 
-def checkGalvantizedMods():
-
-    queueMods = getListGalvantinzedMods()
-    modList = []
-    for modLink in queueMods:
-        print("Mod Link checking " +modLink)
-        listMod = searchWarFramePrices(modLink)
-        print(listMod)
-        modList.extend(listMod)
-    
-
-    modList.sort(key=lambda x: x["platinum"])
-
-    print("Done listing ")
-
-    print("summary number of sell orders "+str(len(modList)))
-    printSellOrders(modList)
 def getListPrimeMods():
     # make request to site
     r = requests.get(linkPrime,timeout=5) 
@@ -87,33 +65,24 @@ def getListPrimeMods():
 
     for mod in galvantinzedMods:
         nameOfMods.append(getReadyLink(mod.text))
-    print(nameOfMods)    
     return nameOfMods
 
 def checkPrimeMods():
+    return checkMods(getListPrimeMods)
 
-    queueMods = getListPrimeMods()
+def checkGalvantizedMods():
+    return checkMods(getListGalvantinzedMods)
+
+def checkMods(getListModes):
+    queueMods = getListModes()
     modList = []
     for modLink in queueMods:
         listMod = searchWarFramePrices(modLink)
         modList.extend(listMod)
-    
-
     modList.sort(key=lambda x: x["platinum"])
-
-
-    printSellOrders(modList)
-def getListArbitrationRewards(link=linkArbitrations):
-    
-    # make request to site
-    r = requests.get(linkGalvatinized,timeout=5) 
-    soup = BeautifulSoup(r.text, "html5lib")
-    print(soup)
-
-    #market orders are find in a script tag 
-    artbitrationRewards=soup.findAll("table")
-    print(artbitrationRewards)
-
+    return sumarrySellOrders(modList)
+ 
+ 
 #take the names and replace it with the link to parse for ps4
 def getReadyLink(name):
     name = name.lower()
@@ -125,14 +94,14 @@ def getReadyLink(name):
 def getItemFromLink(name):
     name = name.lower()
     name =name.split("/")
-    print(name)
+    log.debug(name)
     return name[-1]
 
 
 def parseSellData(item,data):
-    print("Data parsing ")
-    print(item)
-    print(data)
+    log.debug("Data parsing ")
+    log.debug(item)
+    log.debug(data)
     newDataModels = []
     for order in data:
         newData= {}
@@ -145,16 +114,19 @@ def parseSellData(item,data):
     return newDataModels
 
 
-def printSellOrders(sellOrders):
-    print("Summary number of sell orders "+str(len(sellOrders)))
+def sumarrySellOrders(sellOrders):
+    message=""
+    message+="Summary number of sell orders "+str(len(sellOrders))
+    message+=("\n \n")
     i=1
     for item in sellOrders:
-        print('{}: - {}'.format(i, item))
+        message+=('{}: - {}\n'.format(i, item))
         i = i +1
-        print()
-    print()
+        message+=("\n")
+    message+=("\n")
 
-
+    log.info(message)
+    return message
 
 def getCurrentSteelPathReward(link="https://warframe.fandom.com/wiki/The_Steel_Path"):
       # make request to site
@@ -167,15 +139,14 @@ def getCurrentSteelPathReward(link="https://warframe.fandom.com/wiki/The_Steel_P
         if("is available for " in div.text ):
             count+=1
             if(count==2):
-                print(div.text)
+                log.debug(div.text)
                 return div.text
-                print()
-
+               
       
 def main():
     #getCurrentSteelPathReward()
-    #checkGalvantizedMods()
-    checkPrimeMods()
+    message =checkGalvantizedMods()
+    #checkPrimeMods()
 
     
 def lambda_handler(event, context):
