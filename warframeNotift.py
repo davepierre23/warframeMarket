@@ -1,3 +1,4 @@
+from email import message
 from bs4 import BeautifulSoup 
 from bs4.element import ResultSet
 import requests 
@@ -140,6 +141,7 @@ def sumarrySellOrders(sellOrders):
     return message
 
 def getCurrentSteelPathReward(link="https://warframe.fandom.com/wiki/The_Steel_Path"):
+    message=""
       # make request to site
     r = requests.get(link,timeout=5) 
     soup = BeautifulSoup(r.text, "html5lib")
@@ -151,7 +153,9 @@ def getCurrentSteelPathReward(link="https://warframe.fandom.com/wiki/The_Steel_P
             count+=1
             if(count==2):
                 log.debug(div.text)
-                return div.text
+                message+=div.text
+                message+="this week"
+                return message
                
 def main():
     messages =[]
